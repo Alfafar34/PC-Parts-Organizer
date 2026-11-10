@@ -1,106 +1,110 @@
 # PC Parts Organizer
 
-Aplicación de escritorio (Tkinter) para organizar el inventario de componentes de PC, consultar un catálogo de referencias comerciales, registrar datos técnicos con evidencias y evaluar la compatibilidad de los equipos configurados.
+Desktop application (Tkinter) to organize your PC component inventory, browse a catalog of commercial references, record technical data with evidence, and evaluate the compatibility of configured builds.
 
-> **Importante.** El motor de compatibilidad **no certifica** la compatibilidad total de un ordenador. Presenta conclusiones acotadas a relaciones específicas y exige atributos verificados; todo lo no evaluado se declara explícitamente (`not_evaluated`, limitaciones). Lee `docs/ARQUITECTURA.md` antes de interpretar resultados.
+> **Important.** The compatibility engine does **not** certify a computer's total compatibility. It presents conclusions scoped to specific relationships and requires verified attributes; everything not evaluated is explicitly declared (`not_evaluated`, limitations). Read `docs/ARCHITECTURE.md` before interpreting results.
 
-## Funcionalidades principales
+## Main features
 
-- **Inventario de componentes** con búsqueda, filtros por categoría, ordenación y detalle.
-- **Catálogo de referencias comerciales** en SQLite, con búsqueda, paginación, importación/exportación CSV/JSON y alta masiva al inventario.
-- **Incorporación múltiple desde catálogo**: selección entre páginas, duplicados detectados y omitidos con informe, y rechazo atómico ante entradas inválidas.
-- **Importación CSV al inventario**: vista previa con validación por fila, detección de duplicados, cambio de delimitador/codificación y una única incorporación transaccional (con plantilla descargable).
-- **Perfiles técnicos** por componente con atributos tipados, procedencia, confianza, evidencia y estados de verificación.
-- **Equipos (builds)** con asignación única de componentes, detalle y eliminación.
-- **Motor de compatibilidad determinista** (sin I/O): findings con regla, severidad, participantes, evidencia y explicación; resultado global y relaciones no evaluadas.
-- **Auditoría técnica por build**: hallazgos vinculados a atributos concretos, pendientes relevantes/futuros, inconsistencias y conteos.
-- **Centro de calidad**: resumen global, cola de revisión y corrección de datos pendientes.
-- **Comparador de builds**: componentes añadidos/retirados/sustituidos con correspondencias demostradas y findings nuevos/comunes/resueltos.
-- **Fichas de configuración** exportables a Markdown (`.md`) y texto (`.txt`) desde un análisis fresco.
-- **Copias de seguridad y restauración** con verificación SHA256 y copia preventiva previa a la restauración.
-- **Localización ES/EN** persistente con paridad exacta de claves.
+- **Component inventory** with search, category filters, sorting and details.
+- **Catalog of commercial references** in SQLite, with search, pagination, CSV/JSON import/export and bulk add to inventory.
+- **Bulk add from catalog**: cross-page selection, duplicates detected and skipped with a report, and atomic rejection on invalid entries.
+- **CSV import into inventory**: preview with per-row validation, duplicate detection, delimiter/encoding switching and a single transactional commit (with downloadable template).
+- **Technical profiles** per component with typed attributes, provenance, confidence, evidence and verification states.
+- **Builds** with single assignment of components, details and deletion.
+- **Deterministic compatibility engine** (no I/O): findings with rule, severity, participants, evidence and explanation; global result and unevaluated relationships.
+- **Per-build technical audit**: findings linked to specific attributes, relevant/future pending items, inconsistencies and counts.
+- **Quality center**: global summary, review queue and pending-data fixes.
+- **Build comparer**: added/removed/replaced components with demonstrated correspondences and new/common/resolved findings.
+- **Configuration sheets** exportable to Markdown (`.md`) and plain text (`.txt`) from a fresh analysis.
+- **Backup and restore** with SHA256 verification and a pre-restore safety copy.
+- **Persistent ES/EN localization** with exact key parity.
 
-## Tecnologías
+## Technologies
 
-- **Python 3.14+** (verificado con CPython 3.14.5) y **Tkinter** (widget estándar, requiere un display; en Windows se incluye con Python).
-- **SQLite 3** (módulo estándar `sqlite3`) solo para el catálogo.
-- **Sin dependencias externas**: no se requiere `pip install` para ejecutar ni para validar.
-  La aplicación y sus tests utilizan únicamente Python estándar y Tkinter.
-  Pillow es opcional y solo lo usan determinadas herramientas de validación visual
-  de `tools/` (capturas de pantalla); no es necesario instalarlo para ejecutar la aplicación.
+- **Python 3.14+** (verified with CPython 3.14.5) and **Tkinter** (standard widget set, requires a display; on Windows it ships with Python).
+- **SQLite 3** (standard `sqlite3` module) for the catalog only.
+- **No external dependencies**: no `pip install` is required to run or validate.
+  The application and its tests use only standard Python and Tkinter.
+  Pillow is optional and is only used by certain visual-validation tools in
+  `tools/` (screenshots); you do not need to install it to run the application.
 
-## Requisitos
+## Language support
 
-1. Python 3.14 o superior con Tkinter disponible.
-2. Permisos de escritura en `%LOCALAPPDATA%\PCPartsOrganizer` (Windows) / `~/.local/share/PCPartsOrganizer` (Linux/macOS vía `XDG_DATA_HOME`/carpeta de datos local del sistema).
-3. No se necesita red, ni base de datos externa, ni compilación.
+The application supports **English and Spanish**. Switch languages from the header selector; the preference is saved in `settings.json` and every label, message and dialog updates immediately (verified with exact ES/EN key parity). This documentation uses the English UI terms (e.g. **Inventory**, **Builds**, **Add from catalog**, **Analyze compatibility**).
 
-## Preparación y ejecución
+## Requirements
+
+1. Python 3.14 or newer with Tkinter available.
+2. Write permission in `%LOCALAPPDATA%\PCPartsOrganizer` (Windows) / `~/.local/share/PCPartsOrganizer` (Linux/macOS via `XDG_DATA_HOME`/local system data folder).
+3. No network, no external database, no compilation needed.
+
+## Setup and execution
 
 ```bat
-REM desde la raíz del repositorio
+REM from the repository root
 python -m pc_parts_organizer
 ```
 
-No hay instalación ni paso de compilación. El primer arranque crea el directorio de datos y los archivos de estado si no existen.
+No installation or build step. The first launch creates the data directory and state files if missing.
 
-## Estructura del repositorio
+## Repository structure
 
 ```
-pc_parts_organizer/        Paquete de la aplicación
-  app.py                   Punto de arranque (run())
+pc_parts_organizer/        Application package
+  app.py                   Entry point (run())
   __main__.py              python -m pc_parts_organizer
-  models.py                Component, Build y validación de modelos
-  service.py               InventoryService (autoridad transaccional)
-  storage.py               Persistencia JSON, esquemas, backups, importación/exportación
-  catalog_models.py        CatalogEntry y clave de duplicado
-  catalog_storage.py       SQLite del catálogo (modo lectura/escritura)
-  catalog_service.py       Servicio del catálogo
-  catalog_io.py            Importación/exportación CSV/JSON del catálogo
-  technical_profiles.py    Perfiles, AttributeSpec, registro de atributos, validación
-  compatibility/           Motor puro de compatibilidad + reglas por relación
-  data_quality.py          Calidad de datos, estados de atributos, CONSUMERS, cola
-  build_audit.py           Auditoría técnica por build
-  build_compare.py         Comparador de builds
-  build_sheet.py           Fichas Markdown/TXT
-  localization.py          Translator y preferencia de idioma
-  locales/es.json, en.json Localización completa
-  ui/                      Vistas y formularios Tkinter
-tests/                     Suite unittest (aislamiento fail-closed en TEMP)
-tools/                     Preparadores de validación visual sintéticos
-docs/                      Guía de usuario, arquitectura, mantenimiento, inicio rápido
+  models.py                Component, Build and model validation
+  service.py               InventoryService (transactional authority)
+  storage.py               JSON persistence, schemas, backups, import/export
+  catalog_models.py        CatalogEntry and duplicate key
+  catalog_storage.py       Catalog SQLite (read/write mode)
+  catalog_service.py       Catalog service
+  catalog_io.py            Catalog CSV/JSON import/export
+  technical_profiles.py    Profiles, AttributeSpec, attribute registry, validation
+  compatibility/           Pure compatibility engine + per-relationship rules
+  data_quality.py          Data quality, attribute states, CONSUMERS, queue
+  build_audit.py           Per-build technical audit
+  build_compare.py         Build comparer
+  build_sheet.py           Markdown/TXT sheets
+  localization.py          Translator and language preference
+  locales/es.json, en.json Complete localization
+  ui/                      Tkinter views and forms
+tests/                     unittest suite (fail-closed isolation in TEMP)
+tools/                     Synthetic visual-validation preparers
+docs/                      User guide, architecture, maintenance, quick start
 ```
 
-## Ubicación de los datos
+## Data location
 
-Los datos se guardan **fuera** del repositorio, en el directorio de datos local del sistema:
+Data is stored **outside** the repository, in the system local data directory:
 
 - Windows: `%LOCALAPPDATA%\PCPartsOrganizer\`
 - Linux/macOS: `~/.local/share/PCPartsOrganizer/`
 
-Archivos:
+Files:
 
-| Archivo | Contenido |
+| File | Contents |
 |---|---|
-| `components.json` | Inventario + builds + perfiles técnicos (JSON, `schema_version` 4 al escribir; acepta 1–4 al leer) |
-| `settings.json` | Preferencia de idioma (`schema_version` 1) |
-| `catalog.sqlite3` | Catálogo de referencias comerciales |
-| `backups/` | Copias preventivas previas a restauraciones |
+| `components.json` | Inventory + builds + technical profiles (JSON, `schema_version` 4 when writing; accepts 1–4 when reading) |
+| `settings.json` | Language preference (`schema_version` 1) |
+| `catalog.sqlite3` | Catalog of commercial references |
+| `backups/` | Pre-restore safety copies |
 
-El catálogo y el inventario son **almacenes separados**: el catálogo es una biblioteca de referencia reutilizable; el inventario es tu colección personal. Incorporar desde catálogo **copia** los campos con equivalencia real (categoría, fabricante, modelo, especificaciones, notas) y nunca transfiere procedencia comercial como verificación técnica.
+The catalog and the inventory are **separate stores**: the catalog is a reusable reference library; the inventory is your personal collection. Adding from the catalog **copies** only fields with a real correspondence (category, manufacturer, model, specifications, notes) and never transfers commercial provenance as technical verification.
 
-## Documentación
+## Documentation
 
-- `docs/GUIA_USUARIO.md` — manual completo, paso a paso.
-- `docs/INICIO_RAPIDO.md` — recorrido práctico del primer arranque a la ficha exportada.
-- `docs/ARQUITECTURA.md` — capas, contratos, motor de compatibilidad y límites técnicos.
-- `docs/MANTENIMIENTO.md` — backup, restauración y diagnóstico.
+- `docs/USER_GUIDE.md` — complete step-by-step manual.
+- `docs/QUICK_START.md` — practical walkthrough from first launch to exported sheet.
+- `docs/ARCHITECTURE.md` — layers, contracts, compatibility engine and technical limits.
+- `docs/MAINTENANCE.md` — backup, restore and diagnostics.
 
-## Limitaciones importantes
+## Important limitations
 
-- El motor evalúa relaciones concretas; no garantiza compatibilidad física, eléctrica o de funcionamiento total.
-- Las incompatibilidades se declaran solo con **atributos verificados**; sin verificación, el resultado será `requires_verification` o `insufficient_data`, nunca una incompatibilidad confirmada.
-- `compatible` en una relación no implica que otras dimensiones no evaluadas (p. ej. carriles PCIe, potencia eléctrica, capacidad térmica) hayan sido comprobadas.
-- La aplicación no autentica documentación de fabricantes; los metadatos de evidencia se muestran tal cual se registran.
-- La base de datos del catálogo es SQLite de un solo proceso; no se debe editar manualmente con herramientas externas.
-- Los datos reales no deben editarse a mano; usa las funciones de la interfaz o los procedimientos documentados en `docs/MANTENIMIENTO.md`.
+- The engine evaluates specific relationships; it does not guarantee physical, electrical or overall functional compatibility.
+- Incompatibilities are only declared with **verified attributes**; without verification, the result will be `requires_verification` or `insufficient_data`, never a confirmed incompatibility.
+- `compatible` on a relationship does not imply that other unevaluated dimensions (e.g. PCIe lanes, PSU power, thermal capacity) have been checked.
+- The application does not authenticate manufacturer documentation; evidence metadata is shown exactly as recorded.
+- The catalog database is single-process SQLite; do not edit it manually with external tools.
+- Real data must not be edited by hand; use the UI functions or the procedures documented in `docs/MAINTENANCE.md`.
