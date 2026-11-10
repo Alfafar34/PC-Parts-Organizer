@@ -108,3 +108,11 @@ The catalog and the inventory are **separate stores**: the catalog is a reusable
 - The application does not authenticate manufacturer documentation; evidence metadata is shown exactly as recorded.
 - The catalog database is single-process SQLite; do not edit it manually with external tools.
 - Real data must not be edited by hand; use the UI functions or the procedures documented in `docs/MAINTENANCE.md`.
+
+## AI-assisted development
+
+AI tools, including OpenCode and ChatGPT, were used throughout development
+to assist with implementation, debugging, test development, and documentation.
+
+The project requirements, scope, and development direction were defined by
+the maintainer, who remains responsible for the resulting code and its maintenance.
